@@ -223,7 +223,7 @@ public class CassandraConnection
 
             } catch (Exception exception) {
                 logger.error("Failed to set keyspace: " + keyspace, exception);
-                throw new RuntimeException("Failed to set keyspace: " + keyspace, exception);
+                throw new CassandraConnectionException("Failed to set keyspace: " + keyspace, exception);
             }
         }
 
