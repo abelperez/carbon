@@ -5,8 +5,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-import com.mindplex.cassandra.CassandraConnectionException;
-
 /**
  *
  * @author Abel Perez
