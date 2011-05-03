@@ -1,4 +1,4 @@
-package com.mindplex.common.pool;
+package com.mindplex.cassandra.connection;
 
 import java.io.Closeable;
 
@@ -6,7 +6,7 @@ import java.io.Closeable;
  * A connection that can be used in conjunction with a {@code ConnectionFactory}
  * and {@code ConnectionPool}.  In essence this connection is a wrapper for an
  * underlying connection of type T.  Through this connection object, the target
- * connection can be acquired, closed, and verified to be valid. 
+ * connection can be acquired, closed, and verified to be valid.
  *
  * @author Abel Perez
  */
@@ -15,7 +15,7 @@ public interface Connection<T> extends Closeable
     /**
      * Checks if this connection is valid.  Valid in this context can be as
      * simple as checking if the underlying connection is open.
-     * 
+     *
      * @return <tt>true</tt> if this connection is valid; otherwise <tt>false</tt>.
      */
     public boolean isValid();
@@ -25,7 +25,7 @@ public interface Connection<T> extends Closeable
      * calls to this method always return the same underlying connection.
      * If the {@code close} method on this connection has been called, then
      * this method will returned a closed connection.
-     * 
+     *
      * @return the underlying connection wrapped by this connection.
      */
     public T get();
