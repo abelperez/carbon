@@ -93,6 +93,7 @@ public class ThriftClient //implements Connection<T>
         this.port = port;
         this.keyspace = keyspace;
     }
+    
     /**
      * Creates a new connection with the specified keyspace and
      * the default host and port this connection should point to.
