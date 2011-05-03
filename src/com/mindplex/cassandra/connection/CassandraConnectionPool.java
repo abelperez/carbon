@@ -3,8 +3,9 @@ package com.mindplex.cassandra.connection;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import com.mindplex.cassandra.CassandraNode;
 import org.apache.log4j.Logger;
+
+import com.mindplex.cassandra.CassandraNode;
 
 /**
  *
@@ -52,7 +53,7 @@ public class CassandraConnectionPool<T extends Connection<?>> implements Connect
     private final int maxWaitTimeWhenExhausted;
 
     /**
-     * 
+     * The connection factory this connection pool uses to create new connections.
      */
     private ConnectionFactory<T> factory;
     
