@@ -52,8 +52,8 @@ public class ThriftCassandraGateway implements CassandraGateway
     /** */
     public static final CharsetDecoder decoder = charset.newDecoder();
 	
-	/** */
-	public static final CharsetEncoder encoder = charset.newEncoder();
+    /** */
+    public static final CharsetEncoder encoder = charset.newEncoder();
     
     /** */
     private String keyspace;
