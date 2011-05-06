@@ -121,11 +121,9 @@ public class ThriftCassandraGateway implements CassandraGateway
 
         // verify that specified parameters are valid.
 
-        Check.argument(host == null || "".equals(host), "host cannot be empty.");
-        
-        //if (host == null || "".equals(host)) {
-        //    throw new IllegalArgumentException("host cannot be empty.");
-        //}
+        if (host == null || "".equals(host)) {
+            throw new IllegalArgumentException("host cannot be empty.");
+        }
         if (port <= 0) {
             throw new IllegalArgumentException("invalid port specified.");
         }
