@@ -23,9 +23,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.cassandra.thrift.*;
-import org.apache.log4j.Logger;
 
 import com.mindplex.cassandra.connection.*;
 
@@ -38,15 +39,24 @@ public class ThriftCassandraGateway implements CassandraGateway
     /**
      * Default logger used by this gateway.
      */
-    private static final Logger logger = Logger.getLogger(ThriftCassandraGateway.class);
-    
-    /** */
+    private static final Logger logger =
+            Logger.getLogger(ThriftCassandraGateway.class.getName());
+
+    /**
+     * The default value of {@link #host} which indicates this node
+     * points to a local Cassandra node.
+     */
     private static final String DEFAULT_HOST = "localhost";
 
-    /** */
+    /**
+     * The default value of {@link #port} which indicates this node
+     * points to the default port cassandra nodes listen on.
+     */
     private static final int DEFAULT_PORT = 9160;
 
-    /** */
+    /**
+     * 
+     */
     public static final Charset charset = Charset.forName("UTF-8");
 
     /** */
@@ -82,7 +92,7 @@ public class ThriftCassandraGateway implements CassandraGateway
      * @param keyspace the keyspace this gateway is associated with.
      */
     public ThriftCassandraGateway(String keyspace) {
-        this(DEFAULT_HOST, DEFAULT_PORT, keyspace, ConsistencyLevel.ONE);
+        this(keyspace, ConsistencyLevel.ONE);
     }
 
     /**
@@ -110,10 +120,12 @@ public class ThriftCassandraGateway implements CassandraGateway
     public ThriftCassandraGateway(String host, int port, String keyspace, ConsistencyLevel consistencyLevel) {
 
         // verify that specified parameters are valid.
+
+        Check.argument(host == null || "".equals(host), "host cannot be empty.");
         
-        if (host == null || "".equals(host)) {
-            throw new IllegalArgumentException("host cannot be empty.");
-        }
+        //if (host == null || "".equals(host)) {
+        //    throw new IllegalArgumentException("host cannot be empty.");
+        //}
         if (port <= 0) {
             throw new IllegalArgumentException("invalid port specified.");
         }
@@ -148,7 +160,7 @@ public class ThriftCassandraGateway implements CassandraGateway
      */
     public void delete(final String columnFamily, final String rowid, final String column) throws Exception {
 
-        class DeleteFunction implements CassandraFunction<Cassandra.Client>
+        execute(new CassandraFunction<Cassandra.Client>()
         {
             public void execute(Cassandra.Client client) throws Exception {
 
@@ -163,9 +175,7 @@ public class ThriftCassandraGateway implements CassandraGateway
                         System.currentTimeMillis(),
                         getConsistencyLevel());
             }
-        }
-
-        execute(new DeleteFunction());
+        });
     }
 
     /**
@@ -173,7 +183,7 @@ public class ThriftCassandraGateway implements CassandraGateway
      */
     public void deleteAll(final String columnFamily, final String rowid, final Pair[] pairs) throws Exception {
 
-        class DeleteAllFunction implements CassandraFunction<Cassandra.Client>
+        execute(new CassandraFunction<Cassandra.Client>()
         {
             public void execute(Cassandra.Client client) throws Exception {
 
@@ -220,9 +230,7 @@ public class ThriftCassandraGateway implements CassandraGateway
                 
                 client.batch_mutate(outer, getConsistencyLevel());
             }
-        }
-
-        execute(new DeleteAllFunction());
+        });
     }
 
     /**
@@ -230,7 +238,7 @@ public class ThriftCassandraGateway implements CassandraGateway
      */
     public String findColumn(final String columnFamily, final String rowid, final String key) throws Exception {
 
-        class FindColumnFunction implements CassandraSelectFunction<Cassandra.Client, String>
+        return executeSelect(new CassandraSelectFunction<Cassandra.Client, String>()
         {
             public String execute(Cassandra.Client client) throws Exception {
 
@@ -246,9 +254,7 @@ public class ThriftCassandraGateway implements CassandraGateway
                 
                 return stringValue(response.column.value);
             }
-        }
-
-        return executeSelect(new FindColumnFunction());
+        });
     }
 
     /**
@@ -256,7 +262,7 @@ public class ThriftCassandraGateway implements CassandraGateway
      */    
     public List<Pair> findColumnsSliceRange(final String columnFamily, final String rowid) throws Exception {
 
-        class FindColumnsSliceRangeFunction implements CassandraSelectFunction<Cassandra.Client, List<Pair>>
+        return executeSelect(new CassandraSelectFunction<Cassandra.Client, List<Pair>>()
         {
             public List<Pair> execute(Cassandra.Client client) throws Exception {
 
@@ -294,9 +300,7 @@ public class ThriftCassandraGateway implements CassandraGateway
                 // return the final search results.
                 return searchResults;
             }
-        }
-
-        return executeSelect(new FindColumnsSliceRangeFunction());
+        });
     }
 
     /**
@@ -304,7 +308,7 @@ public class ThriftCassandraGateway implements CassandraGateway
      */    
     public List<Pair> findByKeyRange(final String columnFamily, final List<String> keys) throws Exception {
 
-        class FindByKeyRangeFunction implements CassandraSelectFunction<Cassandra.Client, List<Pair>>
+        return executeSelect(new CassandraSelectFunction<Cassandra.Client, List<Pair>>()
         {
             public List<Pair> execute(Cassandra.Client client) throws Exception {
 
@@ -351,9 +355,7 @@ public class ThriftCassandraGateway implements CassandraGateway
                 // return the final search results.
                 return searchResults;
             }
-        }
-        
-        return executeSelect(new FindByKeyRangeFunction());
+        });
     }
 
     /**
@@ -361,7 +363,7 @@ public class ThriftCassandraGateway implements CassandraGateway
      */    
     public List<Pair> findColumns(final String columnFamily, final String rowid, final List<String> keys) throws Exception {
 
-        class FindColumnsFunction implements CassandraSelectFunction<Cassandra.Client, List<Pair>>
+        return executeSelect(new CassandraSelectFunction<Cassandra.Client, List<Pair>>()
         {
             public List<Pair> execute(Cassandra.Client client) throws Exception {
 
@@ -405,16 +407,15 @@ public class ThriftCassandraGateway implements CassandraGateway
                 // return the final search results.
                 return searchResults;
             }
-        }
-
-        return executeSelect(new FindColumnsFunction());
+        });
     }
 
     /**
      * {@inheritDoc}
      */    
     public void insert(final String columnFamily, final String rowid, final Pair pair) throws Exception {
-        class InsertFunction implements CassandraFunction<Cassandra.Client>
+
+        execute(new CassandraFunction<Cassandra.Client>()
         {
             public void execute(Cassandra.Client client) throws Exception {
 
@@ -426,12 +427,10 @@ public class ThriftCassandraGateway implements CassandraGateway
 
                 client.insert(toByteBuffer(rowid),
                         new ColumnParent(columnFamily),
-                        ThriftUtil.getColumn(pair),
+                        ThriftUtil.makeColumn(pair),
                         getConsistencyLevel());
             }
-        }
-
-        execute(new InsertFunction());
+        });
     }
 
     /**
@@ -453,7 +452,7 @@ public class ThriftCassandraGateway implements CassandraGateway
                 // log the error and continue trying to
                 // insert remaining columns.
                 
-                logger.error("Failed to insert [cf: " + columnFamily +
+                logger.log(Level.SEVERE, "Failed to insert [cf: " + columnFamily +
                         ", rowid: " + rowid + ", key: " + pair.getKey(), exception);
             }
         }
@@ -464,7 +463,7 @@ public class ThriftCassandraGateway implements CassandraGateway
      */    
     public void insertAll(final String columnFamily, final String rowid, final Pair[] pairs) throws Exception {
 
-        class InsertAllFunction implements CassandraFunction<Cassandra.Client>
+        execute(new CassandraFunction<Cassandra.Client>()
         {
             public void execute(Cassandra.Client client) throws Exception {
 
@@ -475,7 +474,7 @@ public class ThriftCassandraGateway implements CassandraGateway
                 List<Mutation> mutation = new ArrayList<Mutation>();
                 for (Pair pair : pairs) {
                     mutation.add(ThriftUtil.getMutation(
-                            ThriftUtil.getColumn(pair)));
+                            ThriftUtil.makeColumn(pair)));
                 }
 
                 // setup a map with the key being the column family we want
@@ -496,9 +495,7 @@ public class ThriftCassandraGateway implements CassandraGateway
                 // execute the actual batch mutation.
                 client.batch_mutate(mutationMap, getConsistencyLevel());
             }
-        }
-
-        execute(new InsertAllFunction());
+        });
     }
 
     /**
@@ -506,7 +503,7 @@ public class ThriftCassandraGateway implements CassandraGateway
      */    
     public void insertAllSuperColumns(final String columnFamily, final String superColumnName, final String rowid, final Pair[] pairs) throws Exception {
 
-        class InsertAllFunction implements CassandraFunction<Cassandra.Client>
+        execute(new CassandraFunction<Cassandra.Client>()
         {
             public void execute(Cassandra.Client client) throws Exception {
 
@@ -521,7 +518,7 @@ public class ThriftCassandraGateway implements CassandraGateway
 
                 List<Column> columns = new ArrayList<Column>();
                 for (Pair pair : pairs) {
-                    columns.add(ThriftUtil.getColumn(pair));
+                    columns.add(ThriftUtil.makeColumn(pair));
                 }
                 superColumn.setColumns(columns);
 
@@ -550,9 +547,7 @@ public class ThriftCassandraGateway implements CassandraGateway
                 // execute the actual batch mutation.
                 client.batch_mutate(mutationMap, getConsistencyLevel());
             }
-        }
-
-        execute(new InsertAllFunction());
+        });
     }
 
     /**
@@ -567,7 +562,7 @@ public class ThriftCassandraGateway implements CassandraGateway
      */    
     public void discover() throws Exception {
 
-        class DiscoveryFunction implements CassandraFunction<Cassandra.Client>
+        execute(new CassandraFunction<Cassandra.Client>()
         {
             public void execute(Cassandra.Client client) throws Exception {
 
@@ -578,14 +573,12 @@ public class ThriftCassandraGateway implements CassandraGateway
                     List<TokenRange> tokens = client.describe_ring(def.getName());
                     for (TokenRange range : tokens) {
                         for (String node : range.getEndpoints()) {
-                            System.out.println("discovered node: " + node + ":" + DEFAULT_PORT);
+                            System.out.println("discovered node: " + node);
                         }
                     }
                 }
             }
-        }
-
-        execute(new DiscoveryFunction());
+        });
     }
 
     /**
@@ -608,13 +601,15 @@ public class ThriftCassandraGateway implements CassandraGateway
      * method.  This example illustrates the bare minimum way to
      * use this method with a thrift client.
      *
-     * <code>
+     * <pre>
+     * {@code
      * class ExampleFunction implements CassandraFunction<Cassandra.Client>
      * {
      *     public void execute(Cassandra.Client client) throws Exception {
      *         // do something with client... 
      *     }
-     * }
+     * }}
+     * </pre>
      *
      * execute(new ExampleFunction());
      * </code>
@@ -635,7 +630,7 @@ public class ThriftCassandraGateway implements CassandraGateway
             function.execute(connection.get().getClient());
 
         } catch (Exception exception) {
-            logger.error("Failed to execute cassandra function.", exception);
+            logger.log(Level.SEVERE, "Failed to execute cassandra function.", exception);
             throw new Exception("Failed to execute cassandra function.", exception);
 
         } finally {
@@ -673,7 +668,7 @@ public class ThriftCassandraGateway implements CassandraGateway
             return function.execute(connection.get().getClient());
 
         } catch (Exception exception) {
-            logger.error("Failed to execute cassandra select function.", exception);
+            logger.log(Level.SEVERE, "Failed to execute cassandra select function.", exception);
             throw new Exception("Failed to execute cassandra select function.", exception);
 
         } finally {
