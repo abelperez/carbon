@@ -14,8 +14,6 @@
 
 package com.mindplex.util;
 
-import com.mindplex.cassandra.examples.LoadBalanceList;
-
 import java.util.*;
 
 /**
@@ -62,10 +60,7 @@ public class WeightedRoundRobinList<E> implements LoadBalancedList<E>, Iterable<
      * @param elements the collection of elements to initialize this list with.
      */
     public WeightedRoundRobinList(List<Element<E>> elements) {
-        if (elements == null) {
-            throw new IllegalArgumentException("Specified elements is null");
-        }
-        loadElements(elements);
+        loadElements(Check.forNull(elements));
     }
 
     /**
@@ -221,6 +216,7 @@ public class WeightedRoundRobinList<E> implements LoadBalancedList<E>, Iterable<
      * <p>For example, the following code illustrates how this list effectively
      * load balances the distribution of elements contained in this list.
      *
+     * <pre>
      * {@code
      * LoadBalanceList<String> list = new WeightedRoundRobinList<String>();
      * list.add("low", 1);
@@ -230,7 +226,9 @@ public class WeightedRoundRobinList<E> implements LoadBalancedList<E>, Iterable<
      * for (String element : list) {
      *     System.out.println(item + " ");
      * }}
-     * will produce the following output:
+     * </pre>
+     *
+     * <p>will produce the following output:
      * <em>low mid high mid high high </em>
      *
      * <p>As you can see the code above yields each element the number
@@ -401,7 +399,7 @@ public class WeightedRoundRobinList<E> implements LoadBalancedList<E>, Iterable<
             return true;
         }
 
-        if (other instanceof LoadBalanceList) {
+        if (other instanceof LoadBalancedList) {
 
             WeightedRoundRobinList<?> otherList = (WeightedRoundRobinList<?>) other;
 
