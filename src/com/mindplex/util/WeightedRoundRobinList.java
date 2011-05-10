@@ -41,9 +41,9 @@ public class WeightedRoundRobinList<E> implements LoadBalancedList<E>, Iterable<
     private int position;
 
     /**
-     * This lists modification count. Each time this list is modified, this
-     * counter is incremented.  This helps iterators of this list detect
-     * concurrent modifications.
+     * The modification count. Each time this list is modified, {@code modCount}
+     * is incremented.  This helps iterators of this list detect concurrent
+     * modifications.
      */
     private int modCount = 0;
 
